@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(
@@ -7,5 +7,6 @@ setup(
     description='utility library for finance',
     author='jjakimoto',
     author_email='f.j.akimoto@gmail.com',
-    packages=['finance_ml']
+    packages=find_packages(),
+    py_modeuls=["finance_ml"]
 )
