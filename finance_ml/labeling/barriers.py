@@ -32,20 +32,23 @@ def apply_ptslt1(close, events, ptsl, molecule):
 
 
 def get_events(close, t_events, ptsl, trgt, min_ret=0, num_threads=1,
-                  t1=False, side=None):
+               t1=False, side=None):
     # Get sampled target values
     trgt = trgt.loc[t_events]
     trgt = trgt[trgt > min_ret]
     # Get time boundary t1
     if t1 is False:
         t1 = pd.Series(pd.NaT, index=t_events)
+    # ptsl has to be either of integer, list or tuple
+    if isinstance(ptsl, list) or isinstance(ptsl, tuple):
+        _ptsl = ptsl[:2]
+    else:
+        _ptsl = [ptsl, ptsl]
     # Define the side
     if side is None:
         _side = pd.Series(1., index=trgt.index)
-        _ptsl = [ptsl, ptsl]
     else:
         _side = side.loc[trgt.index]
-        _ptsl = ptsl[:2]
     events = pd.concat({'t1': t1, 'trgt': trgt, 'side': _side}, axis=1)
     events = events.dropna(subset=['trgt'])
     time_idx = mp_pandas_obj(func=apply_ptslt1,
