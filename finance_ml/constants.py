@@ -1,0 +1,2 @@
+LONG = 1
+SHORT = -1

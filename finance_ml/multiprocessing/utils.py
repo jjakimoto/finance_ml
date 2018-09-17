@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import sys
+from copy import deepcopy
 import multiprocessing as mp
 
 
@@ -31,14 +32,22 @@ def process_jobs(jobs, task=None, num_threads=24):
     """Execute parallelized jobs"""
     if task is None:
         task = jobs[0]['func'].__name__
-    pool = mp.Pool(processes=num_threads)
-    outputs = pool.imap_unordered(expand_call, jobs)
     out = []
-    time0 = time.time()
-    # Execute programs here
-    for i, out_ in enumerate(outputs, 1):
-        out.append(out_)
-        report_progress(i, len(jobs), time0, task)
-    pool.close()
-    pool.join()
+    if num_threads > 1:
+        pool = mp.Pool(processes=num_threads)
+        outputs = pool.imap_unordered(expand_call, jobs)
+        time0 = time.time()
+        # Execute programs here
+        for i, out_ in enumerate(outputs, 1):
+            out.append(out_)
+            report_progress(i, len(jobs), time0, task)
+        pool.close()
+        pool.join()
+    else:
+        for job in jobs:
+            job = deepcopy(job)
+            func = job['func']
+            del job['func']
+            out_ = func(**job)
+            out.append(out_)
     return out

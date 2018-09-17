@@ -16,10 +16,7 @@ def mp_pandas_obj(func, pd_obj, num_threads=24, mp_batches=1, lin_mols=True,
         job = {pd_obj[0]: pd_obj[1][parts[i - 1]: parts[i]], 'func': func}
         job.update(kwargs)
         jobs.append(job)
-    if num_threads == 1:
-        out = process_jobs(jobs)
-    else:
-        out = process_jobs(jobs, num_threads=num_threads)
+    out = process_jobs(jobs, num_threads=num_threads)
 
     if isinstance(out[0], pd.Series):
         df0 = pd.Series()
