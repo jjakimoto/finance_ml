@@ -3,14 +3,14 @@ import pandas as pd
 
 
 def get_sizes(close, events, sign_label=True):
-    """Retrun bet sizes
+    """Return bet sizes
 
     Parameters
     ----------
     close: pd.Series
     events: pd.DataFrame
         t1: time of barrier
-        type: type of barrier - pt, sl, or t1
+        type: type of barrier - tp, sl, or t1
         trgt: horizontal barrier width
         side: position side
     sign_label: bool, (default True)
