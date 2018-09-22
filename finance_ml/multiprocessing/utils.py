@@ -29,7 +29,21 @@ def report_progress(job_idx, num_jobs, time0, task):
 
 
 def process_jobs(jobs, task=None, num_threads=24):
-    """Execute parallelized jobs"""
+    """Execute parallelized jobs
+
+    Parameters
+    ----------
+    jobs: list(dict)
+        Each element contains `function` and its parameters
+    task: str, optional
+        The name of task. If not specified, function name is used
+    num_threads, (default 24)
+        The number of threads for parallelization
+
+    Returns
+    -------
+    List: each element is results of each part
+    """
     if task is None:
         task = jobs[0]['func'].__name__
     out = []
