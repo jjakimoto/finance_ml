@@ -1,1 +1,1 @@
-from .vol import get_daily_vol
+from .vol import get_vol

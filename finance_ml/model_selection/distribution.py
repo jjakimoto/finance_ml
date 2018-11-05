@@ -1,4 +1,5 @@
 from scipy.stats import rv_continuous
+import numpy as np
 
 
 class LogUniformGen(rv_continuous):

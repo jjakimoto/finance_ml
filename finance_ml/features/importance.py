@@ -77,7 +77,7 @@ def feat_imp_MDA(clf, X, y, n_splits, sample_weight, t1, pct_embargo,
 def aux_feat_imp_SFI(feat_names, clf, X, cont, scoring, cv_gen):
     imp = pd.DataFrame(columns=['mean', 'std'])
     for feat_name in feat_names:
-        scores = cv_score(clf, X=X[[feat_name]], y=cont['bin'],
+        scores = cv_score(clf, X=X[[feat_name]], y=cont['size'],
                           sample_weight=cont['w'],
                           scoring=scoring,
                           cv_gen=cv_gen)
@@ -98,23 +98,23 @@ def feat_importance(X, cont, clf=None, n_estimators=1000, n_splits=10, max_sampl
         clf = BaggingClassifier(base_estimator=base_clf, n_estimators=n_estimators,
                                 max_features=1., max_samples=max_samples,
                                 oob_score=True, n_jobs=n_jobs)
-    fit_clf = clf.fit(X, cont['bin'], sample_weight=cont['w'].values)
+    fit_clf = clf.fit(X, cont['size'], sample_weight=cont['w'].values)
     if hasattr(fit_clf, 'oob_score_'):
         oob = fit_clf.oob_score_
     else:
         oob = None
     if method == 'MDI':
         imp = feat_imp_MDI(fit_clf, feat_names=X.columns)
-        oos = cv_score(clf, X=X, y=cont['bin'], n_splits=n_splits,
+        oos = cv_score(clf, X=X, y=cont['size'], n_splits=n_splits,
                        sample_weight=cont['w'], t1=cont['t1'],
                        pct_embargo=pct_embargo, scoring=scoring).mean()
     elif method == 'MDA':
-        imp, oos = feat_imp_MDA(clf, X=X, y=cont['bin'], n_splits=n_splits,
+        imp, oos = feat_imp_MDA(clf, X=X, y=cont['size'], n_splits=n_splits,
                                 sample_weight=cont['w'], t1=cont['t1'],
                                 pct_embargo=pct_embargo, scoring=scoring)
     elif method == 'SFI':
         cv_gen = PurgedKFold(n_splits=n_splits, t1=cont['t1'], pct_embargo=pct_embargo)
-        oos = cv_score(clf, X=X, y=cont['bin'], sample_weight=cont['w'],
+        oos = cv_score(clf, X=X, y=cont['size'], sample_weight=cont['w'],
                        scoring=scoring, cv_gen=cv_gen)
         clf.n_jobs = 1
         imp = mp_pandas_obj(aux_feat_imp_SFI, ('feat_names', X.columns),

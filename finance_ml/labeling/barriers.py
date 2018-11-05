@@ -121,7 +121,7 @@ def get_events(close, timestamps, sltp, trgt, min_ret=0,
     return events
 
 
-def get_t1(close, timestamps, num_days):
+def get_t1(close, timestamps, days=None, seconds=None):
     """Return horizontal timestamps
 
     Note
@@ -132,14 +132,19 @@ def get_t1(close, timestamps, num_days):
     ----------
     close: pd.Series
     timestamps: pd.DatetimeIndex
-    num_days: int
-        The number of forward dates for vertical barrier
+    num_days, seconds: int
+        The number of forward dates or seconds for vertical barrier.
+        You need to specify either of them
 
     Returns
     -------
     pd.Series: Vertical barrier timestamps
     """
-    t1 = close.index.searchsorted(timestamps + pd.Timedelta(days=num_days))
+    if days is None:
+        delta = pd.Timedelta(seconds=seconds)
+    else:
+        delta = pd.Timedelta(days=days)
+    t1 = close.index.searchsorted(timestamps + delta)
     t1 = t1[t1 < close.shape[0]]
     t1 = pd.Series(close.index[t1], index=timestamps[:t1.shape[0]])
     return t1
