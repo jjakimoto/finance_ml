@@ -75,7 +75,7 @@ def get_events(close, timestamps, sltp, trgt, min_ret=0,
     trgt: pd.Series
         Time series of threashold
     min_ret: float, (default 0)
-        Minimum value of points to label
+        Minimum value of threashold to label
     num_threads: int, (default 1)
         The number of threads to use
     t1: pd.Series, optional
@@ -115,7 +115,8 @@ def get_events(close, timestamps, sltp, trgt, min_ret=0,
     # Skip when all of barrier are not touched
     time_idx = time_idx.dropna(how='all')
     events['type'] = time_idx.idxmin(axis=1)
-    events['t1'] = time_idx.min(axis=1)
+    events['time'] = time_idx.min(axis=1)
+    del events['t1']
     if side is None:
         events = events.drop('side', axis=1)
     return events
@@ -151,7 +152,7 @@ def get_t1(close, timestamps, days=None, seconds=None):
 
 
 def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
-                       num_days=1, min_ret=0, num_threads=16,
+                       days=None, seconds=None, min_ret=0, num_threads=16,
                        side=None, sign_label=True):
     """Return Labels for triple barriesr
 
@@ -183,7 +184,7 @@ def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
     -------
     pd.Series: label
     """
-    t1 = get_t1(close, timestamps, num_days)
+    t1 = get_t1(close, timestamps, days=days, seconds=seconds)
     events = get_events(close, timestamps,
                         sltp=sltp,
                         trgt=trgt,
