@@ -1,4 +1,5 @@
 import pandas as pd
+import multiprocessing as mp
 
 from ..multiprocessing import mp_pandas_obj
 from ..constants import LONG, SHORT
@@ -152,7 +153,7 @@ def get_t1(close, timestamps, days=None, seconds=None):
 
 
 def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
-                       days=None, seconds=None, min_ret=0, num_threads=16,
+                       days=None, seconds=None, min_ret=0, num_threads=None,
                        side=None, sign_label=True):
     """Return Labels for triple barriesr
 
@@ -185,6 +186,8 @@ def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
     pd.Series: label
     """
     t1 = get_t1(close, timestamps, days=days, seconds=seconds)
+    if num_threads is None:
+        num_threads = mp.cpu_count()
     events = get_events(close, timestamps,
                         sltp=sltp,
                         trgt=trgt,
