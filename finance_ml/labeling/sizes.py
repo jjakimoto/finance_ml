@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-def get_sizes(close, events, sign_label=True, zero_label=None):
+def get_sizes(close, events, min_ret=0, sign_label=True, zero_label=0):
     """Return label
 
     Parameters
@@ -13,6 +13,8 @@ def get_sizes(close, events, sign_label=True, zero_label=None):
         type: type of barrier - tp, sl, or t1
         trgt: horizontal barrier width
         side: position side
+    min_ret: float
+        Minimum of absolute value for labeling non zero label. min_ret >=0
     sign_label: bool, (default True)
         If True, assign label for points touching vertical
         line accroing to return's sign
@@ -39,12 +41,9 @@ def get_sizes(close, events, sign_label=True, zero_label=None):
         out['side'] = events['side']
     # Assign labels
     out['size'] = np.sign(out['ret'])
-    if zero_label is None:
-        out = out.loc[out['ret'] != 0]
-    else:
-        out.loc[out['ret'] ==0, 'size'] = zero_label
+    out.loc[(out['ret'] <= min_ret) & (out['ret'] >= -min_ret), 'size'] = zero_label
     if 'side' in events:
-        out.loc[out['ret'] <= 0, 'size'] = 0
+        out.loc[out['ret'] <= min_ret, 'size'] = zero_label
     if not sign_label:
-        out['size'].loc[events['type'] == 't1'] = 0
+        out['size'].loc[events['type'] == 't1'] = zero_label
     return out

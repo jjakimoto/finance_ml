@@ -58,7 +58,7 @@ def get_touch_idx(close, events, sltp, molecule=None):
     return touch_idx
 
 
-def get_events(close, timestamps, sltp, trgt, min_ret=0,
+def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
                num_threads=1, t1=None, side=None):
     """Return DataFrame containing infomation defining barriers
 
@@ -68,14 +68,15 @@ def get_events(close, timestamps, sltp, trgt, min_ret=0,
         Close price series
     timestamps: pd.DatetimeIndex
         sampled points to analyze
-    sltp: list
+    sltp: list or int, optional
         Coefficients of width of Stop Loss and Take Profit.
         sltp[0] and sltp[1] correspond to width of stop loss
         and take profit, respectively. If 0 or negative, the barrier
         is siwthced off.
-    trgt: pd.Series
+    trgt: pd.Series, optional
         Time series of threashold
-    min_ret: float, (default 0)
+        If not specified, we will switch off horizontal thresholds
+    min_trgt: float, (default 0)
         Minimum value of threashold to label
     num_threads: int, (default 1)
         The number of threads to use
@@ -88,9 +89,13 @@ def get_events(close, timestamps, sltp, trgt, min_ret=0,
     -------
     pd.DataFrame with columns: 't1', 'trgt', 'type', and 'side'
     """
+    if trgt is None:
+        # Switch off horizontal barriers
+        trgt = pd.Series(1 + min_trgt, index=timestamps)
+        sltp = -1
     # Get sampled target values
     trgt = trgt.loc[timestamps]
-    trgt = trgt[trgt > min_ret]
+    trgt = trgt[trgt > min_trgt]
     if len(trgt) == 0:
         return pd.DataFrame(columns=['t1', 'trgt', 'side'])
     # Get time boundary t1
@@ -152,27 +157,29 @@ def get_t1(close, timestamps, days=None, seconds=None):
     return t1
 
 
-def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
-                       days=None, seconds=None, min_ret=0, num_threads=None,
-                       side=None, sign_label=True, zero_label=None):
+def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
+                       days=None, seconds=None, min_trgt=0, min_ret=0,
+                       num_threads=None, side=None, sign_label=True, zero_label=0):
     """Return Labels for triple barriesr
 
     Parameters
     ----------
     close: pd.Series
-    timestamps: pd.DatetimeIndex
+    timestamps: pd.DatetimeIndex, optional
         sampled points to analyze
-    trgt: pd.Series
+        If not specified, we will use close.index
+    trgt: pd.Series, optional
         Time series of threshold
-    sltp: list, (default [1, 1]
+        If not specified, it will switch off horizontal barriers
+    sltp: list, (default [1, 1])
         Coefficients of width of Stop Loss and Take Profit.
         sltp[0] and sltp[1] correspond to width of stop loss
         and take profit, respectively. If 0 or negative, the barrier
         is switched off.
     num_days: int, (default, 1)
         The number of forward dates for vertical barrier
-    min_ret: float, (default 0)
-        Minimum value of points to label
+    min_trgt: float, (default 0)
+        Minimum value of threshold to label
     num_threads: int, (default 16)
         The number of threads to use
     side: pd.Series, optional
@@ -187,14 +194,16 @@ def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
     -------
     pd.Series: label
     """
+    if timestamps is None:
+        timestamps = close.index
     t1 = get_t1(close, timestamps, days=days, seconds=seconds)
     if num_threads is None:
         num_threads = mp.cpu_count()
     events = get_events(close, timestamps,
                         sltp=sltp,
                         trgt=trgt,
-                        min_ret=min_ret,
+                        min_trgt=min_trgt,
                         num_threads=num_threads,
                         t1=t1, side=side)
-    sizes = get_sizes(close, events, sign_label=sign_label, zero_label=zero_label)
+    sizes = get_sizes(close, events, min_ret=min_ret, sign_label=sign_label, zero_label=zero_label)
     return sizes['size']
