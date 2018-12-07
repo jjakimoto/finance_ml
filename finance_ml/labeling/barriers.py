@@ -154,7 +154,7 @@ def get_t1(close, timestamps, days=None, seconds=None):
 
 def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
                        days=None, seconds=None, min_ret=0, num_threads=None,
-                       side=None, sign_label=True):
+                       side=None, sign_label=True, zero_label=None):
     """Return Labels for triple barriesr
 
     Parameters
@@ -180,6 +180,8 @@ def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
     sign_label: bool, (default True)
         If True, assign label for points touching vertical
         line according to return's sign
+    zero_label: int, optional
+        The label for zero value of returns
 
     Returns
     -------
@@ -194,5 +196,5 @@ def get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
                         min_ret=min_ret,
                         num_threads=num_threads,
                         t1=t1, side=side)
-    sizes = get_sizes(close, events, sign_label=sign_label)
+    sizes = get_sizes(close, events, sign_label=sign_label, zero_label=zero_label)
     return sizes['size']
