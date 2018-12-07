@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-def get_sizes(close, events, sign_label=True):
+def get_sizes(close, events, sign_label=True, zero_label=None):
     """Return label
 
     Parameters
@@ -16,6 +16,9 @@ def get_sizes(close, events, sign_label=True):
     sign_label: bool, (default True)
         If True, assign label for points touching vertical
         line accroing to return's sign
+    zero_label: int, optional
+        If specified, use it for the label of zero value of return
+        If not, get rid of samples
 
     Returns
     -------
@@ -36,7 +39,10 @@ def get_sizes(close, events, sign_label=True):
         out['side'] = events['side']
     # Assign labels
     out['size'] = np.sign(out['ret'])
-    out.loc[out['ret'] == 0, 'size'] = 1
+    if zero_label is None:
+        out = out.loc[out['ret'] != 0]
+    else:
+        out.loc[out['ret'] ==0, 'size'] = zero_label
     if 'side' in events:
         out.loc[out['ret'] <= 0, 'size'] = 0
     if not sign_label:
