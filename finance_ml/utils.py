@@ -1,6 +1,8 @@
 import numbers
 from copy import deepcopy
 
+import numpy as np
+
 
 def sign_log(x, scale=1):
     const = 1
