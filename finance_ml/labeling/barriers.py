@@ -195,7 +195,10 @@ def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
     pd.Series: label
     """
     if timestamps is None:
-        timestamps = close.index
+        if side is None:
+            timestamps = close.index
+        else:
+            timestamps = side.index
     t1 = get_t1(close, timestamps, days=days, seconds=seconds)
     if num_threads is None:
         num_threads = mp.cpu_count()
