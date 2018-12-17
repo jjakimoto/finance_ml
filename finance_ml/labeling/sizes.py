@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
+from ..multiprocessing import mp_pandas_obj
+
 
 def get_sizes(close, events, min_ret=0, sign_label=True, zero_label=0):
     """Return label
@@ -69,6 +71,43 @@ def discrete_signal(signal, step_size):
     signal[signal > 1] = 1
     signal[signal < -1] = -1
     return signal
+
+
+def avg_active_signals(signals, num_threads=1, timestamps=None):
+    """Average active signals
+
+    Paramters
+    ---------
+    signals: pd.Series
+    num_threads: 1
+    timestamps: list, optional
+        Timestamps used for output. When there is not active signal,
+        value will be zero on that point. If not specified, use signals.index
+    
+    Return
+    ------
+    pd.Series
+    """
+    if timestamps is None:
+        timestamps = set(signals['t1'].dropna().values)
+        timestamps = list(timestamps.union(set(signals.index.values)))
+        timestamps.sort()
+    out = mp_pandas_obj(mp_avg_active_signals, ('molecule', timestamps), num_threads, signals=signals)
+    return out
+
+
+def mp_avg_active_signals(signals, molecule):
+    """Function to calculate averaging with multiprocessing"""
+    out = pd.Series()
+    for loc in molecule:
+        loc = pd.Timestamp(loc)
+        cond = (signals.index <= loc) & ((loc < signals['t1']) | pd.isnull(signals['t1']))
+        active_idx = signals[cond].index
+        if len(active_idx) > 0:
+            out[loc] = signals.loc[active_idx, 'signal'].mean()
+        else:
+            out[loc] = 0
+    return out
 
 
 def get_signal(events, prob, scale=1, step_size=None, num_classes=2, num_threads=1, **kwargs):
