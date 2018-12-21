@@ -5,7 +5,29 @@ from .kfold import PurgedKFold
 
 
 def cv_score(clf, X, y, sample_weight=None, scoring='neg_log_loss',
-             t1=None, n_splits=3, cv_gen=None, pct_embargo=0., purging=False):
+             n_splits=3, t1=None, cv_gen=None, pct_embargo=0., purging=True):
+    """Cross Validation with default purging and embargo
+    
+    Params
+    ------
+    X: pd.DataFrame
+    y: pd.Series, optional
+    sample_weight: pd.Series, optional
+        If specified, apply this to bot testing and training
+    scoring: str, default 'neg_log_loss'
+        The name of scoring methods. 'accuracy' or 'neg_log_loss'
+    
+    n_splits: int
+        The number of splits for cross validation
+    t1: pd.Series
+        Index and value correspond to the begining and end of information
+    cv_gen: KFold instance
+        If not specified, use PurgedKfold
+    pct_embargo: float, default 0
+        The percentage of applying embargo
+    purging: bool, default True
+        If true, apply purging method
+    """
     if scoring not in ['neg_log_loss', 'accuracy']:
         raise Exception('Wrong scoring method')
     if cv_gen is None:
