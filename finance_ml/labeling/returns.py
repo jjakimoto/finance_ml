@@ -16,5 +16,5 @@ def get_returns(close, timestamps=None, num_days=1):
     """
     if timestamps is None:
         timestamps = close.index
-    close = close.shift(-num_days) / close
-    return close.loc[timestamps] - 1.
+    rets = close.pct_change(num_days).shift(-num_days)
+    return rets.loc[timestamps]

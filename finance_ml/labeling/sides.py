@@ -2,7 +2,7 @@ import numbers
 import pandas as pd
 
 
-def cusum_filter(close, h, k=0):
+def cusum_side(close, h, k=0):
     """Sample points with CUSUM Filter
 
     Parameters
@@ -16,6 +16,7 @@ def cusum_filter(close, h, k=0):
     pd.DatetimeIndex: Sampled data points
     """
     # asssum that E y_t = y_{t-1}
+    side = []
     s_pos, s_neg = 0, 0
     diff = close.diff().dropna()
     # time variant threshold
@@ -32,8 +33,11 @@ def cusum_filter(close, h, k=0):
             s_pos = 0
             timestamps.append(t)
             th = h.loc[t]
+            side.append(1)
         elif s_neg < -th:
             s_neg = 0
             timestamps.append(t)
             th = h.loc[t]
-    return pd.DatetimeIndex(timestamps)
+            side.append(-1)
+    side = pd.Series(side, index=pd.DatetimeIndex(timestamps))
+    return side

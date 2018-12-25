@@ -1,1 +1,1 @@
-from .fraction import frac_diff, frac_diff_FFD
+from .fraction import get_opt_d, frac_diff_FFD

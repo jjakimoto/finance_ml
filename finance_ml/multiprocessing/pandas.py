@@ -4,7 +4,7 @@ from .partition import linear_parts, nested_parts
 from .utils import process_jobs
 
 
-def mp_pandas_obj(func, pd_obj, num_threads=24, mp_batches=1,
+def mp_pandas_obj(func, pd_obj, num_threads=1, mp_batches=1,
                   linear_mols=True,
                   descend=False, **kwargs):
     """Return multiprocessed results
@@ -13,8 +13,8 @@ def mp_pandas_obj(func, pd_obj, num_threads=24, mp_batches=1,
     ----------
     func: function object
     pd_obj: list
-        pd_obj[0]: the name of parameters to be parallelized
-        pd_obj[1]: parameters to be parallelized
+        pd_obj[0]: The name of parameters to be parallelized
+        pd_obj[1]: List of parameters to be parallelized
     mp_batches: int
         The number of batches processed for each thread
     linear_mols: bool
