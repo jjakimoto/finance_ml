@@ -2,7 +2,7 @@ import numbers
 import pandas as pd
 
 
-def cusum_side(close, h):
+def cusum_side(close, h, k=0):
     """Sample points with CUSUM Filter
 
     Parameters
@@ -13,7 +13,7 @@ def cusum_side(close, h):
 
     Returns
     -------
-    pd.Series: Break direction for sampled points
+    pd.DatetimeIndex: Sampled data points
     """
     # asssum that E y_t = y_{t-1}
     side = []
@@ -27,8 +27,8 @@ def cusum_side(close, h):
     timestamps = []
     th = h.loc[h.index[0]]
     for t in h.index:
-        s_pos = max(0, s_pos + diff.loc[t])
-        s_neg = min(0, s_neg + diff.loc[t])
+        s_pos = max(0, s_pos + diff.loc[t] - k)
+        s_neg = min(0, s_neg + diff.loc[t] + k)
         if s_pos > th:
             s_pos = 0
             timestamps.append(t)

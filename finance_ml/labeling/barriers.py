@@ -1,9 +1,11 @@
+import numbers
+
 import pandas as pd
+import numpy as np
 import multiprocessing as mp
 
 from ..multiprocessing import mp_pandas_obj
 from ..constants import LONG, SHORT
-from .sizes import get_sizes
 
 
 def get_touch_idx(close, events, sltp, molecule=None):
@@ -93,6 +95,8 @@ def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
         # Switch off horizontal barriers
         trgt = pd.Series(1 + min_trgt, index=timestamps)
         sltp = -1
+    elif isinstance(trgt, numbers.Number):
+        trgt = pd.Series(trgt, index=timestamps)
     # Get sampled target values
     trgt = trgt.loc[timestamps]
     trgt = trgt[trgt > min_trgt]
@@ -157,6 +161,56 @@ def get_t1(close, timestamps, days=None, seconds=None):
     return t1
 
 
+def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
+    """Return label
+
+    Parameters
+    ----------
+    close: pd.Series
+    events: pd.DataFrame
+        time: time of barrier
+        type: type of barrier - tp, sl, or t1
+        trgt: horizontal barrier width
+        side: position side
+    min_ret: float
+        Minimum of absolute value for labeling non zero label. min_ret >=0
+    sign_label: bool, (default True)
+        If True, assign label for points touching vertical
+        line accroing to return's sign
+    zero_label: int, optional
+        If specified, use it for the label of zero value of return
+        If not, get rid of samples
+
+    Returnst
+    -------
+    pd.Series
+    """
+    # Prices algined with events
+    events = events.dropna(subset=['time'])
+    # All used indices
+    time_idx = events.index.union(events['time'].values).drop_duplicates()
+    close = close.reindex(time_idx, method='bfill')
+    # Create out object
+    out = pd.DataFrame(index=events.index)
+    out['ret'] = close.loc[events['time'].values].values / close.loc[
+        events.index] - 1.
+    # Modify return according to the side
+    if 'side' in events:
+        out['ret'] *= events['side']
+        out['side'] = events['side']
+    # Assign labels
+    out['label'] = np.sign(out['ret'])
+    out.loc[(out['ret'] <= min_ret) & (out['ret'] >= -min_ret), 'label'] = zero_label
+    if 'side' in events:
+        out.loc[out['ret'] <= min_ret, 'label'] = zero_label
+    if not sign_label:
+        out['label'].loc[events['type'] == 't1'] = zero_label
+    out['t1'] = events['time']
+    out['type'] = events['type']
+    return out
+
+
+
 def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
                        days=None, seconds=None, min_trgt=0, min_ret=0,
                        num_threads=None, side=None, sign_label=True, zero_label=0):
@@ -208,5 +262,5 @@ def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
                         min_trgt=min_trgt,
                         num_threads=num_threads,
                         t1=t1, side=side)
-    sizes = get_sizes(close, events, min_ret=min_ret, sign_label=sign_label, zero_label=zero_label)
-    return sizes['size']
+    labels = get_labels(close, events, min_ret=min_ret, sign_label=sign_label, zero_label=zero_label)
+    return labels
