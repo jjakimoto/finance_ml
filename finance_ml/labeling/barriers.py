@@ -125,8 +125,7 @@ def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
     # Skip when all of barrier are not touched
     time_idx = time_idx.dropna(how='all')
     events['type'] = time_idx.idxmin(axis=1)
-    events['time'] = time_idx.min(axis=1)
-    del events['t1']
+    events['t1'] = time_idx.min(axis=1)
     if side is None:
         events = events.drop('side', axis=1)
     return events
@@ -168,7 +167,7 @@ def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
     ----------
     close: pd.Series
     events: pd.DataFrame
-        time: time of barrier
+        t1: time of barrier
         type: type of barrier - tp, sl, or t1
         trgt: horizontal barrier width
         side: position side
@@ -186,26 +185,28 @@ def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
     pd.Series
     """
     # Prices algined with events
-    events = events.dropna(subset=['time'])
+    events = events.dropna(subset=['t1'])
     # All used indices
-    time_idx = events.index.union(events['time'].values).drop_duplicates()
+    time_idx = events.index.union(events['t1'].values).drop_duplicates()
     close = close.reindex(time_idx, method='bfill')
     # Create out object
     out = pd.DataFrame(index=events.index)
-    out['ret'] = close.loc[events['time'].values].values / close.loc[
+    out['ret'] = close.loc[events['t1'].values].values / close.loc[
         events.index] - 1.
     # Modify return according to the side
     if 'side' in events:
         out['ret'] *= events['side']
         out['side'] = events['side']
     # Assign labels
+    out = out.dropna()
     out['label'] = np.sign(out['ret'])
-    out.loc[(out['ret'] <= min_ret) & (out['ret'] >= -min_ret), 'label'] = zero_label
     if 'side' in events:
         out.loc[out['ret'] <= min_ret, 'label'] = zero_label
+    else:
+        out.loc[(out['ret'] <= min_ret) & (out['ret'] >= -min_ret), 'label'] = zero_label
     if not sign_label:
         out['label'].loc[events['type'] == 't1'] = zero_label
-    out['t1'] = events['time']
+    out['t1'] = events['t1']
     out['type'] = events['type']
     return out
 
