@@ -76,7 +76,8 @@ def cv_score(clf,
             X=X.iloc[train, :].values, y=y.iloc[train].values, **train_params)
         if hasattr(clf_fit, 'classes_'):
             test_params['labels'] = clf_fit.classes_
-        test_params['ret'] = ret.iloc[test]
+        if ret is not None:
+            test_params['ret'] = ret.iloc[test]
         # Scoring
         score_ = evaluate(clf_fit, X.iloc[test, :].values, y.iloc[test].values,
                           scoring, **test_params)

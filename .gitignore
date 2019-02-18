@@ -47,3 +47,4 @@ build/*
 .idea
 params
 */data/*
+.vscode

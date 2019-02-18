@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from ..multiprocessing import mp_pandas_obj
 
