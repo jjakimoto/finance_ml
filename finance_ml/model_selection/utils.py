@@ -3,8 +3,6 @@ import numpy as np
 from sklearn.metrics import log_loss, accuracy_score, f1_score, recall_score, precision_score,\
     precision_recall_curve, roc_curve
 
-
-
 from finance_ml.multiprocessing import mp_pandas_obj
 
 
@@ -34,8 +32,11 @@ def get_train_times(train_times, test_times, num_threads=1):
     -------
     pd.Series
     """
-    return mp_pandas_obj(mp_train_times, ('molecule', train_times.index), num_threads,
-                         train_times=train_times, test_times=test_times)
+    return mp_pandas_obj(
+        mp_train_times, ('molecule', train_times.index),
+        num_threads,
+        train_times=train_times,
+        test_times=test_times)
 
 
 def get_embargo_times(times, pct_embargo):
@@ -60,7 +61,83 @@ def get_embargo_times(times, pct_embargo):
     return embg
 
 
-def evaluate(model, X, y, method, sample_weight=None, labels=None, pos_idx=1, pos_label=1):
+def performance(ret, proba, step=0.01):
+    if isinstance(ret, pd.Series):
+        ret = ret.values
+    n_step = int(.5 / step) + 1
+    pnls = []
+    sharpes = []
+    won_ratios = []
+    ths = np.linspace(.5, 1, n_step)
+    for th in ths:
+        neg_idx = proba[:, 0] <= th
+        pos_idx = proba[:, 1] >= th
+        neg_ret = ret[neg_idx]
+        pos_ret = ret[pos_idx]
+        won_count = len(neg_ret[neg_ret < 0]) + len(pos_ret[pos_ret > 0])
+        total_count = len(neg_ret) + len(pos_ret)
+        if total_count == 0:
+            won_ratio = 0
+        else:
+            won_ratio = won_count / total_count
+        won_ratios.append(won_ratio)
+        idx = neg_idx | pos_idx
+        ret_ = ret[idx]
+        if len(ret_) == 0:
+            pnl = 0
+            sharpe = 0
+        elif len(ret_) == 1:
+            pnl = float(ret_)
+            sharpe = 0
+        else:
+            pnl = np.sum(ret_)
+            sharpe = np.mean(ret_) / np.std(ret_)
+        pnls.append(pnl)
+        sharpes.append(sharpe)
+    return ths, np.array(pnls), np.array(sharpes), np.array(won_ratios)
+
+
+def meta_performance(ret, proba, step=0.01):
+    if isinstance(ret, pd.Series):
+        ret = ret.values
+    n_step = int(1. / step) + 1
+    pnls = []
+    sharpes = []
+    won_ratios = []
+    ths = np.linspace(0, 1, n_step)
+    for th in ths:
+        idx = proba[:, 1] >= th
+        bet_ret = ret[idx]
+        won_count = len(bet_ret[bet_ret > 0])
+        total_count = len(bet_ret)
+        if total_count == 0:
+            won_ratio = 0
+        else:
+            won_ratio = won_count / total_count
+        won_ratios.append(won_ratio)
+        if len(bet_ret) == 0:
+            pnl = 0
+            sharpe = 0
+        elif len(bet_ret) == 1:
+            pnl = float(bet_ret)
+            sharpe = 0
+        else:
+            pnl = np.sum(bet_ret)
+            sharpe = np.mean(bet_ret) / np.std(bet_ret)
+        pnls.append(pnl)
+        sharpes.append(sharpe)
+    return ths, np.array(pnls), np.array(sharpes), np.array(won_ratios)
+
+
+def evaluate(model,
+             X,
+             y,
+             method,
+             sample_weight=None,
+             labels=None,
+             pos_idx=1,
+             pos_label=1,
+             ret=None):
     """Calculate score
     
     Params
@@ -88,19 +165,29 @@ def evaluate(model, X, y, method, sample_weight=None, labels=None, pos_idx=1, po
         score = -log_loss(y, prob, sample_weight=sample_weight, labels=labels)
     elif method == 'precision':
         pred = model.predict(X)
-        score = precision_score(y, pred, pos_label=pos_label, sample_weight=sample_weight)
+        score = precision_score(
+            y, pred, pos_label=pos_label, sample_weight=sample_weight)
     elif method == 'recall':
         pred = model.predict(X)
-        score = recall_score(y, pred, pos_label=pos_label, sample_weight=sample_weight)
+        score = recall_score(
+            y, pred, pos_label=pos_label, sample_weight=sample_weight)
     elif method == 'precision_recall':
         prob = model.predict_proba(X)[:, pos_idx]
-        score = precision_recall_curve(y, prob, pos_label=pos_label, sample_weight=sample_weight)
+        score = precision_recall_curve(
+            y, prob, pos_label=pos_label, sample_weight=sample_weight)
     elif method == 'roc':
         prob = model.predict_proba(X)[:, pos_idx]
-        score = roc_curve(y, prob, pos_label=pos_label, sample_weight=sample_weight)
+        score = roc_curve(
+            y, prob, pos_label=pos_label, sample_weight=sample_weight)
     elif method == 'accuracy':
         pred = model.predict(X)
         score = accuracy_score(y, pred, sample_weight=sample_weight)
+    elif method == 'performance':
+        prob = model.predict_proba(X)
+        score = performance(ret, prob)
+    elif method == 'meta_performance':
+        prob = model.predict_proba(X)
+        score = meta_performance(ret, prob)
     else:
         raise Exception(f'No Implementation method={method}')
     return score

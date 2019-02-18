@@ -28,7 +28,7 @@ def get_weights_FFD(d, thres, max_size=10000):
     return w
 
 
-def frac_diff_FFD(series, d, lag=1, thres=1e-5):
+def frac_diff_FFD(series, d, lag=1, thres=1e-5, max_size=10000):
     """Compute Fractional Differentiation
     
     Params
@@ -44,7 +44,8 @@ def frac_diff_FFD(series, d, lag=1, thres=1e-5):
     -------
     pd.Series
     """
-    w = get_weights_FFD(d, thres)
+    max_size = int(max_size / lag)
+    w = get_weights_FFD(d, thres, max_size)
     width = len(w)
     series_ = series.fillna(method='ffill').dropna()
     rolling_array = []
@@ -58,7 +59,7 @@ def frac_diff_FFD(series, d, lag=1, thres=1e-5):
     return series
 
 
-def get_opt_d(series, ds=None, lag=1, thres=1e-5,
+def get_opt_d(series, ds=None, lag=1, thres=1e-5, max_size=10000,
               p_thres=1e-2, autolag=None, verbose=1, **kwargs):
     """Find minimum value of degree of stationary differntial
     
@@ -96,7 +97,7 @@ def get_opt_d(series, ds=None, lag=1, thres=1e-5,
     opt_d = ds[-1]
     # Compute pval for each d
     for d in iter_ds:
-        diff = frac_diff_FFD(series, d=d, thres=thres)
+        diff = frac_diff_FFD(series, d=d, thres=thres, max_size=max_size)
         pval = adfuller(diff.dropna().values, autolag=autolag, **kwargs)[1]
         if pval < p_thres:
             opt_d = d
