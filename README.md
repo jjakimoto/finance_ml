@@ -1,7 +1,6 @@
 # finance_ml
-Python implementations of Machine Learning helper functions based on a book,
-`Advances in Financial Machine Learning`[[1]](https://www.amazon.com/Advances-Financial-Machine-Learning-Marcos/dp/1119482089),
-written by `Marcos Lopez de Prado`. 
+Python implementations of Machine Learning helper functions for Quantiative Finance based on a book,
+`Advances in Financial Machine Learning`[[1]](https://www.amazon.co.jp/Advances-Financial-Machine-Learning-English-ebook/dp/B079KLDW21), written by `Marcos Lopez de Prado`. 
 
 # Installation
 Excute the following command
@@ -10,9 +9,17 @@ python setup.py install
 ```
 
 # Implementation
+The following functions are implemented:
+* Labeling
+* Multiporcessing
+* Sampling
+* Feature Selection
+* Asset Allcation
+* Breakout Detection
+
+# Examples
 ## labeling
-* Triple Barriers Labeling
-* CUSUM sampling
+Triple Barriers Labeling and CUSUM sampling
 ```Python
 from finance_ml.labeling import get_barrier_labels, cusum_filter
 from finance_ml.stats import get_daily_vol
@@ -25,14 +32,13 @@ labels = get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
 print(labels.show())
 ```
 Return the following pandas.Series
-```python
+```
 2000-01-05 -1.0
 2000-01-06  1.0
 2000-01-10 -1.0
 2000-01-11  1.0
 2000-01-12  1.0
 ```
-* Future Returns for Regression
 
 ## multiprocessing
 Parallel computing using `multiprocessing` library.
@@ -64,5 +70,6 @@ Output:
 2    0.157630
 3    4.949410
 4    0.601459
-dtype: float64
 ```
+
+For more detail, please refer to the documentation!
