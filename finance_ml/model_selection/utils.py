@@ -134,7 +134,6 @@ def evaluate(model,
              y,
              method,
              sample_weight=None,
-             labels=None,
              pos_idx=1,
              pos_label=1,
              ret=None):
@@ -158,9 +157,11 @@ def evaluate(model,
     list of scores
     """
     if method == 'f1':
+        labels = model.classes_
         pred = model.predict(X)
         score = f1_score(y, pred, sample_weight=sample_weight, labels=labels)
     elif method == 'neg_log_loss':
+        labels = model.classes_
         prob = model.predict_proba(X)
         score = -log_loss(y, prob, sample_weight=sample_weight, labels=labels)
     elif method == 'precision':

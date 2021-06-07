@@ -11,25 +11,23 @@ from ..constants import LONG, SHORT
 def get_touch_idx(close, events, sltp, molecule=None):
     """Return timestamps of when data points touch the barriers
 
-    Parameters
-    ----------
-    close: pd.Series
-        Close price series
-    events: pd.DataFrame with columns: 't1', 'trgt', and 'side'
-        t1: time stamp of vertical barrier, could be np.nan
-        trgt: unit of width of horizontal barriers
-        side: Side label for metalabeling
-    sltp: list
-        Coefficients of width of Stop Loss and Take Profit.
-        sltp[0] and sltp[1] correspond to width of stop loss
-        and take profit, respectively. If 0 or negative, the barrier
-        is siwthced off.
-    molecule: list, optional
-        Subset of indices of events to be processed
+    Args:
+        close (pd.Series): Close price series
 
-    Returns
-    -------
-    pd.DataFrame: each colum corresponds to the time to touch the barrier
+        events (pd.DataFrame): With columns: 't1', 'trgt', and 'side'
+            t1, time stamp of vertical barrier, could be np.nan
+            trgt, unit of width of horizontal barriers
+            side, Side label for metalabeling
+
+        sltp (list): Coefficients of width of Stop Loss and Take Profit.\
+            sltp[0] and sltp[1] correspond to width of stop loss\
+            and take profit, respectively. If 0 or negative, the barrier\
+            is turned off.
+
+        molecule (list, optional): Subset of indices of events to be processed
+
+    Returns:
+        pd.DataFrame: each colum corresponds to the time to touch each barrier
     """
     # Sample a subset with specific indices
     if molecule is not None:
@@ -64,32 +62,35 @@ def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
                num_threads=1, t1=None, side=None):
     """Return DataFrame containing infomation defining barriers
 
-    Parameters
-    ----------
-    close: pd.Series
-        Close price series
-    timestamps: pd.DatetimeIndex
-        sampled points to analyze
-    sltp: list or int, optional
-        Coefficients of width of Stop Loss and Take Profit.
-        sltp[0] and sltp[1] correspond to width of stop loss
-        and take profit, respectively. If 0 or negative, the barrier
-        is siwthced off.
-    trgt: pd.Series, optional
-        Time series of threashold
-        If not specified, we will switch off horizontal thresholds
-    min_trgt: float, (default 0)
-        Minimum value of threashold to label
-    num_threads: int, (default 1)
-        The number of threads to use
-    t1: pd.Series, optional
-        Vertical lines
-    side: pd.Series, optional
-        Side of trading positions
+    Args:
+        close (pd.Series): Close price series
 
-    Returns
-    -------
-    pd.DataFrame with columns: 't1', 'trgt', 'type', and 'side'
+        timestamps (pd.DatetimeIndex): sampled points to analyze
+
+        sltp (list or int, optional): Coefficients of width of Stop Loss and Take Profit.\
+            sltp[0] and sltp[1] correspond to width of stop loss\
+            and take profit, respectively. If 0 or negative, the barrier\
+            is turned off. If not specified, use only vertical line.\
+
+        trgt (pd.Series, optional): Time series of threashold.\
+            If not specified, we will switch off horizontal thresholds
+
+        min_trgt (float, optional): Minimum value of threashold to label either of negative\
+            or positive. Defaults to 0.
+
+        num_threads (int, optional): The number of threads to use.\
+            Defaults to 1.
+
+        t1 (pd.Series, optional): Vertical lines\
+
+        side (pd.Series, optional): Side of trading positions
+
+    Returns:
+        pd.DataFrame: With the following keys:
+            - t1, timestamp of labeled point
+            - trgt, target threashold value
+            - type, the type of labeled point, either of `t1`, `tp`, or `sl`.
+            - side, Only if you use metalabeling, this key is available
     """
     if trgt is None:
         # Switch off horizontal barriers
@@ -131,29 +132,24 @@ def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
     return events
 
 
-def get_t1(close, timestamps, days=None, seconds=None):
+def get_t1(close, timestamps, seconds=None):
     """Return horizontal timestamps
 
-    Note
-    ----
-    Not include the case to hit the vertical line at the end of close.index
+    Note:
+        Not include the case to hit the vertical line at the end of close.index
 
-    Parameters
-    ----------
-    close: pd.Series
-    timestamps: pd.DatetimeIndex
-    num_days, seconds: int
-        The number of forward dates or seconds for vertical barrier.
-        You need to specify either of them
+    Args:
+        close (pd.Series)
 
-    Returns
-    -------
-    pd.Series: Vertical barrier timestamps
+        timestamps (pd.DatetimeIndex)
+
+        seconds (int, optional):
+            The number of forward dates or seconds for vertical barrier.
+
+    Returns:
+        pd.Series: Vertical barrier timestamps
     """
-    if days is None:
-        delta = pd.Timedelta(seconds=seconds)
-    else:
-        delta = pd.Timedelta(days=days)
+    delta = pd.Timedelta(seconds=seconds)
     t1 = close.index.searchsorted(timestamps + delta)
     t1 = t1[t1 < close.shape[0]]
     t1 = pd.Series(close.index[t1], index=timestamps[:t1.shape[0]])
@@ -163,26 +159,31 @@ def get_t1(close, timestamps, days=None, seconds=None):
 def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
     """Return label
 
-    Parameters
-    ----------
-    close: pd.Series
-    events: pd.DataFrame
-        t1: time of barrier
-        type: type of barrier - tp, sl, or t1
-        trgt: horizontal barrier width
-        side: position side
-    min_ret: float
-        Minimum of absolute value for labeling non zero label. min_ret >=0
-    sign_label: bool, (default True)
-        If True, assign label for points touching vertical
-        line accroing to return's sign
-    zero_label: int, optional
-        If specified, use it for the label of zero value of return
-        If not, get rid of samples
+    Args:
+        close (pd.Series)
 
-    Returnst
-    -------
-    pd.Series
+        events (pd.DataFrame):
+            t1: time of barrier
+            type: type of barrier - tp, sl, or t1
+            trgt: horizontal barrier width
+            side: position side
+
+        min_ret (float): Minimum of absolute value for labeling non zero label. min_ret >=0
+
+        sign_label (bool, opyionsl): If True, assign label for points touching vertical\
+            line accroing to return's sign. Defaults to True.
+
+        zero_label (int, optional):
+            If specified, use it for the label of zero value of return\
+            If not, get rid of samples. Defaults to 0.
+
+    Returns:
+        pd.DataFrame: With the following keys:
+            - ret, return value for label
+            - t1, timestamp of labeled point
+            - label, label values
+            - type, the type of labeled point, either of `t1`, `tp`, or `sl`.
+            - side, Only if you use metalabeling, this key is available
     """
     # Prices algined with events
     events = events.dropna(subset=['t1'])
@@ -213,48 +214,53 @@ def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
 
 
 def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
-                       days=None, seconds=None, min_trgt=0, min_ret=0,
-                       num_threads=None, side=None, sign_label=True, zero_label=0):
-    """Return Labels for triple barriesr
+                       seconds=None, min_trgt=0, min_ret=0,
+                       num_threads=None, side=None, sign_label=False, zero_label=0):
+    """Return Labels for triple barrier
 
-    Parameters
-    ----------
-    close: pd.Series
-    timestamps: pd.DatetimeIndex, optional
-        sampled points to analyze
-        If not specified, we will use close.index
-    trgt: pd.Series, optional
-        Time series of threshold
-        If not specified, it will switch off horizontal barriers
-    sltp: list, (default [1, 1])
-        Coefficients of width of Stop Loss and Take Profit.
-        sltp[0] and sltp[1] correspond to width of stop loss
-        and take profit, respectively. If 0 or negative, the barrier
-        is switched off.
-    num_days: int, (default, 1)
-        The number of forward dates for vertical barrier
-    min_trgt: float, (default 0)
-        Minimum value of threshold to label
-    num_threads: int, (default 16)
-        The number of threads to use
-    side: pd.Series, optional
-        Side of trading positions
-    sign_label: bool, (default True)
-        If True, assign label for points touching vertical
-        line according to return's sign
-    zero_label: int, optional
-        The label for zero value of returns
+    Args:
+        close (pd.Series)
 
-    Returns
-    -------
-    pd.Series: label
+        timestamps (pd.DatetimeIndex, optional): Sampled points to analyze.\
+            If not specified, use close.index
+
+        trgt (pd.Series, optional): Time series of threshold.\
+            If not specified, it will switch off horizontal barriers
+
+        sltp (list, optional): Coefficients of width of Stop Loss and Take Profit.\
+            sltp[0] and sltp[1] correspond to width of stop loss\
+            and take profit, respectively. If 0 or negative, the barrier\
+            is switched off. Defaults to [1, 1].\
+
+        seconds (float, optional): The length of vertical barrier.
+
+        min_trgt (float, optional): Minimum value of threshold to label positive or negative.\
+            Deafults to 0.
+
+        num_threads (int, optional): The number of threads to use. If not specified,\
+            use maximum number of threads.
+
+        side (pd.Series, optional): Side of trading positions
+
+        sign_label (bool, optional): If True, assign label for points touching vertical\
+            line according to return's sign. Defaults to True.
+            
+        zero_label (int, optional): The label for zero value of returns
+
+    Returns:
+        pd.DataFrame: With the following keys:
+            - ret, return value for label
+            - t1, timestamp of labeled point
+            - label, label values
+            - type, the type of labeled point, either of `t1`, `tp`, or `sl`.
+            - side, Only if you use metalabeling, this key is available
     """
     if timestamps is None:
         if side is None:
             timestamps = close.index
         else:
             timestamps = side.index
-    t1 = get_t1(close, timestamps, days=days, seconds=seconds)
+    t1 = get_t1(close, timestamps, seconds=seconds)
     if num_threads is None:
         num_threads = mp.cpu_count()
     events = get_events(close, timestamps,
