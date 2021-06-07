@@ -132,7 +132,7 @@ def get_events(close, timestamps, sltp=None, trgt=None, min_trgt=0,
     return events
 
 
-def get_t1(close, timestamps, days=None, seconds=None):
+def get_t1(close, timestamps, seconds=None):
     """Return horizontal timestamps
 
     Note:
@@ -143,17 +143,13 @@ def get_t1(close, timestamps, days=None, seconds=None):
 
         timestamps (pd.DatetimeIndex)
 
-        days, seconds (int, optional):
-            The number of forward dates or seconds for vertical barrier.\
-            Either of days or seconds has to be specified.
+        seconds (int, optional):
+            The number of forward dates or seconds for vertical barrier.
 
     Returns:
         pd.Series: Vertical barrier timestamps
     """
-    if days is None:
-        delta = pd.Timedelta(seconds=seconds)
-    else:
-        delta = pd.Timedelta(days=days)
+    delta = pd.Timedelta(seconds=seconds)
     t1 = close.index.searchsorted(timestamps + delta)
     t1 = t1[t1 < close.shape[0]]
     t1 = pd.Series(close.index[t1], index=timestamps[:t1.shape[0]])
@@ -218,9 +214,9 @@ def get_labels(close, events, min_ret=0, sign_label=True, zero_label=0):
 
 
 def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
-                       days=None, seconds=None, min_trgt=0, min_ret=0,
-                       num_threads=None, side=None, sign_label=True, zero_label=0):
-    """Return Labels for triple barriesr
+                       seconds=None, min_trgt=0, min_ret=0,
+                       num_threads=None, side=None, sign_label=False, zero_label=0):
+    """Return Labels for triple barrier
 
     Args:
         close (pd.Series)
@@ -236,8 +232,7 @@ def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
             and take profit, respectively. If 0 or negative, the barrier\
             is switched off. Defaults to [1, 1].\
 
-        days, seconds (int, optional): The length of vertical barrier.\
-            Either of days or seconds has to be specified
+        seconds (float, optional): The length of vertical barrier.
 
         min_trgt (float, optional): Minimum value of threshold to label positive or negative.\
             Deafults to 0.
@@ -265,7 +260,7 @@ def get_barrier_labels(close, timestamps=None, trgt=None, sltp=[1, 1],
             timestamps = close.index
         else:
             timestamps = side.index
-    t1 = get_t1(close, timestamps, days=days, seconds=seconds)
+    t1 = get_t1(close, timestamps, seconds=seconds)
     if num_threads is None:
         num_threads = mp.cpu_count()
     events = get_events(close, timestamps,

@@ -50,12 +50,15 @@ def cv_score(clf,
     array: scores of cross validation
     """
     if cv_gen is None:
-        cv_gen = PurgedKFold(
-            n_splits=n_splits,
-            t1=t1,
-            pct_embargo=pct_embargo,
-            purging=purging,
-            num_threads=num_threads)
+        if t1 is not None:
+            cv_gen = PurgedKFold(
+                n_splits=n_splits,
+                t1=t1,
+                pct_embargo=pct_embargo,
+                purging=purging,
+                num_threads=num_threads)
+        else:
+            cv_gen = KFold(n_splits=n_splits)
     elif cv_gen == 'cp':
         cv_gen = CPKFold(
             n_splits=n_splits,

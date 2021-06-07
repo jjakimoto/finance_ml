@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import multiprocessing as mp
 
 import statsmodels.api as sm
 
@@ -12,9 +13,9 @@ def t_val_linreg(close):
     ols = sm.OLS(close, x).fit()
     return ols.tvalues[1]
 
-def _get_bins_from_trend(molecule, close, span):
+def _get_bins_from_trend(molecule, close, min_step, max_step, step):
     out = pd.DataFrame(index=molecule, columns=['t1', 't_val','bin'])
-    hrzns = list(range(*span))
+    hrzns = list(range(min_step, max_step + 1, step))
     for dt0 in molecule:
         iloc0 = close.index.get_loc(dt0)
         if iloc0 + max(hrzns) > close.shape[0]:
@@ -32,11 +33,16 @@ def _get_bins_from_trend(molecule, close, span):
     return out.dropna(subset=['bin'])
 
 
-def get_bins_from_trend(close, span, num_threads=1):
+def get_bins_from_trend(close, max_step, min_step=3, step=1, num_threads=None):
+    if num_threads is None:
+        num_threads = mp.cpu_count()
     output = mp_pandas_obj(func=_get_bins_from_trend,
-                             pd_obj=('molecule', close.index),
-                             num_threads=num_threads,
-                             close=close, span=span)
+                           pd_obj=('molecule', close.index),
+                           num_threads=num_threads,
+                           close=close,
+                           max_step=max_step,
+                           min_step=min_step,
+                           step=step)
     return output
 
 

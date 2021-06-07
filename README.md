@@ -1,12 +1,16 @@
 # finance_ml
-Python implementations of Machine Learning helper functions for Quantiative Finance based on a book,
-[Advances in Financial Machine Learning](https://www.amazon.co.jp/Advances-Financial-Machine-Learning-English-ebook/dp/B079KLDW21), written by `Marcos Lopez de Prado`. 
+Python implementations of Machine Learning helper functions for Quantiative Finance based on books,
+[Advances in Financial Machine Learning](https://www.amazon.co.jp/Advances-Financial-Machine-Learning-English-ebook/dp/B079KLDW21) and [Machine Learning for Asset Managers](https://www.amazon.com/Machine-Learning-Managers-Elements-Quantitative/dp/1108792898) , written by `Marcos Lopez de Prado`. 
 
 # Installation
 Excute the following command
 ```python
 python setup.py install
 ```
+
+or
+
+Simply add `your/path/to/finace_ml` to your PYTHONPATH.
 
 # Implementation
 The following functions are implemented:
@@ -18,27 +22,7 @@ The following functions are implemented:
 * Breakout Detection
 
 # Examples
-## labeling
-Triple Barriers Labeling and CUSUM sampling
-```Python
-from finance_ml.labeling import get_barrier_labels, cusum_filter
-from finance_ml.stats import get_daily_vol
-
-vol = get_daily_vol(close)
-trgt = vol
-timestamps = cusum_filter(close, vol)
-labels = get_barrier_labels(close, timestamps, trgt, sltp=[1, 1],
-                            num_days=1, min_ret=0, num_threads=16)
-print(labels.show())
-```
-Return the following pandas.Series
-```
-2000-01-05 -1.0
-2000-01-06  1.0
-2000-01-10 -1.0
-2000-01-11  1.0
-2000-01-12  1.0
-```
+Some of example notebooks are found under the folder `MLAssetManagers`.
 
 ## multiprocessing
 Parallel computing using `multiprocessing` library.
@@ -72,4 +56,4 @@ Output:
 4    0.601459
 ```
 
-For more detail, please refer to the documentation!
+For more detail, please refer to example notebook!

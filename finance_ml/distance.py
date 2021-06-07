@@ -6,7 +6,7 @@ from sklearn.metrics import mutual_info_score
 def _fix_corr(corr):
     corr[corr > 1] = 1
     corr[corr < -1] = -1
-    return corr
+    return corr.fillna(0)
 
 def corr_metric(corr, use_abs=False):
     corr = _fix_corr(corr)

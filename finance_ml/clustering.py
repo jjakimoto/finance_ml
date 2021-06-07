@@ -46,7 +46,7 @@ def make_new_outputs(corr0, clstrs1, clstrs2):
         clstrs_new[len(clstrs_new.keys())] = list(clstrs2[i])
     new_idx = [j for i in clstrs_new.keys() for j in clstrs_new[i]]
     corr_new = corr0.loc[new_idx, new_idx]
-    dist = (0.5 * (1 - corr0.fillna(0))) ** 0.5
+    dist = corr_metric(corr0, False)
     kmeans_labels = np.zeros(len(dist.columns))
     for i in clstrs_new.keys():
         idxs = [dist.index.get_loc(k) for k in clstrs_new[i]]
