@@ -5,15 +5,17 @@ import pandas as pd
 def cusum_filter(close, h, k=0):
     """Sample points with CUSUM Filter
 
-    Parameters
-    ----------
-    close: pd.Series
-    h: pd.Series
-        Threasholds to sampmle points
+    Args:
+        close (pd.Series): Price series.
+        
+        h (float or pd.Series): Threasholds to sample points.\
+            If specified with float, translate to pd.Series(h, index=close.index)
+        
+        k (float, optional): Minimum speed parameter to hit threashold.\
+            Defaults to 0, which means inactive
 
-    Returns
-    -------
-    pd.DatetimeIndex: Sampled data points
+    Returns:
+        pd.DatetimeIndex: Sampled data points
     """
     # asssum that E y_t = y_{t-1}
     s_pos, s_neg = 0, 0

@@ -7,16 +7,16 @@ from tqdm import tqdm, tqdm_notebook
 def get_weights_FFD(d, thres, max_size=10000):
     """Get coefficient for calculating fractional derivative
     
-    Params
-    ------
-    d: int
-    thres: float
-    max_size: int, defaut 1e4
-        Set the maximum size for stability
+    Args:
+        d (int)
+
+        thres (float)
+
+        max_size (int, optional) Defauts to 1e4.\
+            Set the maximum size for stability
         
-    Returns
-    -------
-    array-like
+    Returns:
+        array-like
     """
     w = [1.]
     for k in range(1, max_size):
@@ -31,18 +31,19 @@ def get_weights_FFD(d, thres, max_size=10000):
 def frac_diff_FFD(series, d, lag=1, thres=1e-5, max_size=10000):
     """Compute Fractional Differentiation
     
-    Params
-    ------
-    series: pd.Series
-    d: float, the degree of differentiation
-    lag: int, default 1
-        The lag scale when making differential like series.diff(lag)
-    thres: float, default 1e-5
-        Threshold to determine fixed length window
+    Args:
+        series (pd.Series)
+
+        d (float): the degree of differentiation
+
+        lag (int, optional): Defaults to 1.\
+            The lag scale when making differential like series.diff(lag)
+
+        thres (float, optional): Defaults to 1e-5.\
+            Threshold to determine fixed length window
     
-    Returns
-    -------
-    pd.Series
+    Returns:
+        pd.Series
     """
     max_size = int(max_size / lag)
     w = get_weights_FFD(d, thres, max_size)
@@ -63,24 +64,29 @@ def get_opt_d(series, ds=None, lag=1, thres=1e-5, max_size=10000,
               p_thres=1e-2, autolag=None, verbose=1, **kwargs):
     """Find minimum value of degree of stationary differntial
     
-    Params
-    ------
-    series: pd.Series
-    ds: array-like, default np.linspace(0, 1, 100)
-        Search space of degree.
-    lag: int, default 1
-        The lag scale when making differential like series.diff(lag)
-    thres: float, default 1e-5
-        Threshold to determine fixed length window
-    p_threds: float, default 1e-2
-    auto_lag: str, optional
-    verbose: int, default 1
-        If 1 or 2, show the progress bar. 2 for notebook
-    kwargs: paramters for ADF
+    Args:
+        series (pd.Series)
+
+        ds (array-like, optional): Defaults to np.linspace(0, 1, 100)\
+            Search space of degree.
+
+        lag (int, optional): Defaults to 1.\
+            The lag scale when making differential like series.diff(lag)
+
+        thres (float, optional): Defaults to 1e-5.\
+            Threshold to determine fixed length window
+
+        p_threds (float, optional): Defaults to 1e-2.\
+
+        auto_lag (str, optional)
+
+        verbose (int, optional): Defaults to 1.\
+            If 1 or 2, show the progress bar. 2 for notebook
+            
+        kwargs (optional): paramters for ADF
     
-    Returns
-    -------
-    int, optimal degree
+    Returns:
+        int: optimal degree
     """
     if ds is None:
         ds = np.linspace(0, 1, 100)

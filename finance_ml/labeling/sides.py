@@ -3,17 +3,19 @@ import pandas as pd
 
 
 def cusum_side(close, h, k=0):
-    """Sample points with CUSUM Filter
+    """Sample points with CUSUM Filter and use its direction as betting side
 
-    Parameters
-    ----------
-    close: pd.Series
-    h: pd.Series
-        Threasholds to sampmle points
+    Args:
+        close (pd.Series): Price series
 
-    Returns
-    -------
-    pd.DatetimeIndex: Sampled data points
+        h (float or pd.Series): Threasholds to sampmle points.\
+            If specified with float, translate to pd.Series(h, index=close.index)
+
+        k (float, optional): Minimum speed parameter to hit threashold.\
+            Defaults to 0, which means inactive
+
+    Returns:
+        pd.Series: Betting sides at sampled points
     """
     # asssum that E y_t = y_{t-1}
     side = []

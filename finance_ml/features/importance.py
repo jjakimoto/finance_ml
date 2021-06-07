@@ -11,16 +11,15 @@ from finance_ml.model_selection import PurgedKFold, cv_score, evaluate
 def feat_imp_MDI(forest, feat_names):
     """Compute Mean Decrease Impurity
     
-    Params
-    ------
-    forest: Forest Classifier instance
-    feat_names: list(str)
-        List of names of features
+    Args:
+        forest (Forest Classifier instance)
 
-    Returns
-    -------
-    imp: pd.DataFrame
-        Importance means and standard deviations
+        feat_names (list(str)): List of names of features
+
+    Returns:
+        pd.DataFrame: Importance means and standard deviations
+            - mean: Mean of importance
+            - std: Standard deviation of importance
     """
     imp_dict = {i: tree.feature_importances_ for i, tree in
                 enumerate(forest.estimators_)}
@@ -38,23 +37,25 @@ def feat_imp_MDI(forest, feat_names):
 def feat_imp_MDA(clf, X, y, sample_weight=None, scoring='neg_log_loss', n_splits=3, t1=None,
                  cv_gen=None, pct_embargo=0, purging=True, num_threads=1):
     """Calculate Mean Decrease Accuracy
+
+    Note:
+        You can use any classifier to estimate importance
     
-    Params
-    ------
-    clf: Classifier instance
-    X: pd.DataFrame, Input feature
-    y: pd.Series, Label        
-    sample_weight: pd.Series, optional
-        If specified, apply this to bot testing and training
-    scoring: str, default 'neg_log_loss'
-        The name of scoring methods. 'f1', 'accuracy' or 'neg_log_loss'
-    n_splits: int, default 3
-        The number of splits for cross validation
-    t1: pd.Series
-        Index and value correspond to the begining and end of information
-    cv_gen: KFold instance
-        If not specified, use PurgedKfold
-    pct_embargo: float, default 0
+    Args:
+        clf: Classifier instance
+        X: pd.DataFrame, Input feature
+        y: pd.Series, Label        
+        sample_weight: pd.Series, optional
+            If specified, apply this to bot testing and training
+        scoring: str, default 'neg_log_loss'
+            The name of scoring methods. 'f1', 'accuracy' or 'neg_log_loss'
+        n_splits: int, default 3
+            The number of splits for cross validation
+        t1: pd.Series
+            Index and value correspond to the begining and end of information
+        cv_gen: KFold instance
+            If not specified, use PurgedKfold
+        pct_embargo: float, default 0
         The percentage of applying embargo
     purging: bool, default True
         If true, apply purging method

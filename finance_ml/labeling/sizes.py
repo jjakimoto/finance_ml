@@ -7,45 +7,46 @@ from ..multiprocessing import mp_pandas_obj
 from .utils import get_gaussian_betsize
 
 
-def discrete_signal(signal, step_size):
-    """Discretize signal
+def discrete_signals(signals, step_size):
+    """Discretize signals
     
-    Parameters
-    ----------
-    signal: pd.Series
-        Signals for betting size ranged [-1, 1]
-    step_size: float
-        Discrete size
+    Args:
+        signals (pd.Series or float): Signals for betting size ranged [-1, 1]
+        
+        step_size (float): Discrete size ranged [0, 1]
     
-    Returns
-    -------
-    pd.Series
+    Returns:
+        pd.Series or float: Discretized signals. If signals is pd.Series,\
+            return value is pd.Series. If signals is float, return value\
+            is float
     """
-    if isinstance(signal, numbers.Number):
-        signal = round(signal / step_size) * step_size
-        signal = min(1, signal)
-        signal = max(-1, signal)
+    if isinstance(signals, numbers.Number):
+        signals = round(signals / step_size) * step_size
+        signals = min(1, signals)
+        signals = max(-1, signals)
     else:
-        signal = (signal / step_size).round() * step_size
-        signal[signal > 1] = 1
-        signal[signal < -1] = -1
-    return signal
+        signals = (signals / step_size).round() * step_size
+        signals[signals > 1] = 1
+        signals[signals < -1] = -1
+    return signals
 
 
 def avg_active_signals(signals, num_threads=1, timestamps=None):
     """Average active signals
 
-    Paramters
-    ---------
-    signals: pd.Series
-    num_threads: 1
-    timestamps: list, optional
-        Timestamps used for output. When there is not active signal,
-        value will be zero on that point. If not specified, use signals.index
+    Args:
+        signals (pd.DataFrame): With keys: 't1' and 'signal'
+            - t1, signal effective time boundary.
+            - signal, signal value
+
+        num_threads (int, optional): The number of processor used for calculation.\
+            Defaults to 1.
+
+        timestamps (list, optional): Timestamps used for output. When there is no active signal,\
+            value will be zero on that point. If not specified, use signals.index.
     
-    Return
-    ------
-    pd.Series
+    Returns:
+        pd.Series: Averaged signals
     """
     if timestamps is None:
         timestamps = set(signals['t1'].dropna().values)
@@ -73,46 +74,46 @@ def mp_avg_active_signals(signals, molecule):
     return out
 
 
-def get_signal(prob,
+def get_signal(probs,
                events=None,
                scale=1,
                step_size=None,
                num_classes=2,
                num_threads=1,
                **kwargs):
-    """Return label
+    """Average and discretize signals from probability
 
-    Parameters
-    ----------
-    events: pd.DataFrame
-        time: time of barrier
-        type: type of barrier - tp, sl, or t1
-        trgt: horizontal barrier width
-        side: position side
-    prob: pd.Series
-        Probabilities signals
-    scale: float
-        Betting size scale
-    step_size: float
-        Discrete size
-    num_classes: int, (default, 2)
-        The number of classes
-    num_threads: int, (default, 1)
-        The number of threads used for averaging bets
+    Args:
+        events (pd.DataFrame): With the following keys
+            - time, time of barrier
+            - type, type of barrier - tp, sl, or t1
+            - trgt, horizontal barrier width
+            - side, position side
 
-    Returns
-    -------
-    pd.Series: bet size signal
+        probs (pd.Series): Probability signals
+
+        scale (float): Betting size scale
+
+        step_size (float, optional): If specified, discretize signals.\
+            The value is ranged [0, 1]
+
+        num_classes (int, optional): The number of classes. Defaults to 2.
+
+        num_threads (int, optional): The number of threads used for averaging bets.\
+            Defaults to 1.
+
+    Returns:
+        pd.Series: bet size signals
     """
     # Get Signals
-    if prob.shape[0] == 0:
+    if probs.shape[0] == 0:
         return pd.Series()
-    signal = (prob - 1. / num_classes) / (prob * (1 - prob))
+    signal = (probs - 1. / num_classes) / (probs * (1 - probs))
     signal = pd.Series(
-        get_gaussian_betsize(prob, num_classes), index=prob.index)
+        get_gaussian_betsize(probs, num_classes), index=probs.index)
     if events and 'side' in events:
         signal = signal * events.loc[signal.index, 'side']
     if step_size is not None:
-        signal = discrete_signal(signal, step_size=step_size)
+        signal = discrete_signals(signal, step_size=step_size)
     signal = scale * signal
     return signal

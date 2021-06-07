@@ -72,13 +72,41 @@ Output::
     2    0.157630
     3    4.949410
     4    0.601459
-    dtype: float64
 
 
+Documentation for the Code
+============================
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+Labeling
+---------
+.. automodule:: finance_ml.labeling.barriers
+    :members:
+
+.. automodule:: finance_ml.labeling.sampling
+    :members:
+
+.. automodule:: finance_ml.labeling.sides
+    :members:
+
+.. automodule:: finance_ml.labeling.sizes
+    :members:
+
+.. automodule:: finance_ml.labeling.utils
+    :members:
+
+Multiprocessing
+------------------
+.. automodule:: finance_ml.multiprocessing.pandas
+    :members:
+
+.. automodule:: finance_ml.multiprocessing.partition
+    :members:
+
+.. automodule:: finance_ml.multiprocessing.utils
+    :members:
 
 
 Indices and tables

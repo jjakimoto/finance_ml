@@ -1,6 +1,6 @@
 # finance_ml
 Python implementations of Machine Learning helper functions for Quantiative Finance based on a book,
-`Advances in Financial Machine Learning`[[1]](https://www.amazon.co.jp/Advances-Financial-Machine-Learning-English-ebook/dp/B079KLDW21), written by `Marcos Lopez de Prado`. 
+[Advances in Financial Machine Learning](https://www.amazon.co.jp/Advances-Financial-Machine-Learning-English-ebook/dp/B079KLDW21), written by `Marcos Lopez de Prado`. 
 
 # Installation
 Excute the following command

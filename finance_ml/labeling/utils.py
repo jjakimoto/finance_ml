@@ -15,15 +15,15 @@ def drop_labels(events, min_pct=0.05):
 def get_partial_index(df, start=None, end=None):
     """Get partial time index according to start and end
 
-    Parameters
-    ----------
-    df: pd.DatFrame or pd.Series
-    start: str, optional, e.g., '2000-01-01'
-    end: str, optional, e.g., '2017-08-31'
+    Args:
+        df (pd.DatFrame or pd.Series)
 
-    Returns
-    -------
-    pd.DatetimeIndex
+        start (datetime.datetime, optional): e.g., datetime(2018, 1, 1)
+
+        end (datetime.datetime, optional): e.g., dateteim(2018, 3, 1)
+
+    Returns:
+        pd.DatetimeIndex
     """
     if start is not None:
         df = df.loc[df.index >= start]
@@ -32,28 +32,26 @@ def get_partial_index(df, start=None, end=None):
     return df.index
 
 
-def get_gaussian_betsize(prob, num_classes=2):
+def get_gaussian_betsize(probs, num_classes=2):
     """Translate probability to bettingsize
 
-    Params
-    ------
-    prob: array-like
-    num_classes: int, default 2
+    Args:
+        probs (array-like)
+        
+        num_classes (int, optional): Defaults to 2
 
-    Returns
-    -------
-    array-like
+    Returns:
+        array-like: Signals after gaussian transform
     """
-    if isinstance(prob, numbers.Number):
-        if prob != 0 and prob != 1:
-            signal = (prob - 1. / num_classes) / (prob * (1 - prob))
+    if isinstance(probs, numbers.Number):
+        if probs != 0 and probs != 1:
+            signal = (probs - 1. / num_classes) / (probs * (1 - probs))
         else:
-            signal = 2 * prob - 1
+            signal = 2 * probs - 1
     else:
-        signal = prob.copy()
-        signal[prob == 1] = 1
-        signal[prob == 0] = -1
-        cond = (prob < 1) & (prob > 0)
-        signal[cond] = (prob[cond] - 1. / num_classes) / (prob[cond] *
-                                                          (1 - prob[cond]))
+        signal = probs.copy()
+        signal[probs == 1] = 1
+        signal[probs == 0] = -1
+        cond = (probs < 1) & (probs > 0)
+        signal[cond] = (probs[cond] - 1. / num_classes) / (probs[cond] * (1 - probs[cond]))
     return 2 * norm.cdf(signal) - 1
