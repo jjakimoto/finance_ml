@@ -8,7 +8,7 @@ from .distance import corr_metric
 
 _eps = 1e-16
 
-def cluster_kmeans_base(corr0, max_num_clusters=10, min_num_clusters=4, n_init=10, debug=False):
+def cluster_kmeans_base(corr0, max_num_clusters=10, min_num_clusters=2, n_init=10, debug=False):
     dist = corr_metric(corr0, False)
     silh = None
     kmeans = None
@@ -17,7 +17,7 @@ def cluster_kmeans_base(corr0, max_num_clusters=10, min_num_clusters=4, n_init=1
     min_num_clusters = max(2, min_num_clusters)
     for init in range(n_init):
         for n_clusters in range(min_num_clusters, max_num_clusters + 1):
-            kmeans_ = KMeans(n_clusters=n_clusters, n_jobs=1, n_init=1)
+            kmeans_ = KMeans(n_clusters=n_clusters, n_jobs=1, n_init=1, random_state=init)
             kmeans_ = kmeans_.fit(dist.values)
             silh_ = silhouette_samples(dist.values, kmeans_.labels_)
             q_val_ = silh_.mean() / max(silh_.std(), _eps)
@@ -70,9 +70,13 @@ def cluster_kmeans_top(corr0, max_num_clusters=None, min_num_clusters=4, n_init=
     else:
         keys_redo = [j for i in redo_clstrs for j in clstrs[i]]
         corr_tmp = corr0.loc[keys_redo, keys_redo]
+        min_num_clusters_ = min_num_clusters - (len(clstrs) - len(redo_clstrs))
+        min_num_clusters_ = max(2, min_num_clusters_)
+        max_num_clusters_ = min(max_num_clusters, corr_tmp.shape[1] - 1)
+        min_num_clusters_ = min(max_num_clusters_, min_num_clusters_)
         corr2, clstrs2, silh2 = cluster_kmeans_base(corr_tmp,
-                                                    max_num_clusters=min(max_num_clusters, corr_tmp.shape[1] - 1),
-                                                    min_num_clusters=2,
+                                                    max_num_clusters=max_num_clusters_,
+                                                    min_num_clusters=min_num_clusters_,
                                                     n_init=n_init,
                                                     debug=debug)
         clstrs1 = {i: clstrs[i] for i in clstrs.keys() if i not in redo_clstrs}

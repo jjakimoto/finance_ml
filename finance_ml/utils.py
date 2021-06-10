@@ -15,3 +15,13 @@ def sign_log(x, scale=1):
     x[x >= 0] = np.log(const + scale * np.abs(x[x >= 0]))
     x[x < 0] = -np.log(const + scale * np.abs(x[x < 0]))
     return x
+
+def cov2corr(cov):
+    std = np.sqrt(np.diag(cov))
+    corr = cov / np.outer(std, std)
+    corr[corr < -1] = -1
+    corr[corr > 1] = 1
+    return corr
+
+def corr2cov(corr, std):
+    return corr * np.outer(std, std)

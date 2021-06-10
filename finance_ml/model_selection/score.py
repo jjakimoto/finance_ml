@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.model_selection import KFold
 
 from .kfold import PurgedKFold, CPKFold
 from .utils import evaluate

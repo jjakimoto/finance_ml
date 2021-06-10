@@ -3,16 +3,8 @@ import pandas as pd
 from sklearn.neighbors.kde import KernelDensity
 from scipy.optimize import minimize
 
+from .utils import cov2corr, corr2cov
 
-def cov2corr(cov):
-    std = np.sqrt(np.diag(cov))
-    corr = cov / np.outer(std, std)
-    corr[corr < -1] = -1
-    corr[corr > 1] = 1
-    return corr
-
-def corr2cov(corr, std):
-    return corr * np.outer(std, std)
 
 def mp_pdf(var, q, pts):
     # Marcenko-Pastur Distribution
