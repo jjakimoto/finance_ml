@@ -20,7 +20,8 @@ def cluster_kmeans_base(corr0, max_num_clusters=10, min_num_clusters=2, n_init=1
             kmeans_ = KMeans(n_clusters=n_clusters, n_jobs=1, n_init=1, random_state=init)
             kmeans_ = kmeans_.fit(dist.values)
             silh_ = silhouette_samples(dist.values, kmeans_.labels_)
-            q_val_ = silh_.mean() / max(silh_.std(), _eps)
+            # q_val_ = silh_.mean() / max(silh_.std(), _eps)
+            q_val_ = silh_.mean()
             if q_val is None or q_val_ > q_val:
                 silh = silh_
                 kmeans = kmeans_
@@ -62,7 +63,8 @@ def cluster_kmeans_top(corr0, max_num_clusters=None, min_num_clusters=4, n_init=
                                               max_num_clusters=max_num_clusters,
                                               min_num_clusters=min_num_clusters,
                                               n_init=n_init, debug=debug)
-    clstrs_tstats = {i:np.mean(silh[clstrs[i]]) / max(np.std(silh[clstrs[i]]), _eps) for i in clstrs.keys()}
+    # clstrs_tstats = {i:np.mean(silh[clstrs[i]]) / max(np.std(silh[clstrs[i]]), _eps) for i in clstrs.keys()}
+    clstrs_tstats = {i:np.mean(silh[clstrs[i]]) for i in clstrs.keys()}
     tstats_mean = np.mean(list(clstrs_tstats.values()))
     redo_clstrs = [i for i in clstrs_tstats.keys() if clstrs_tstats[i] < tstats_mean]
     if len(redo_clstrs) <= 2:
@@ -81,7 +83,8 @@ def cluster_kmeans_top(corr0, max_num_clusters=None, min_num_clusters=4, n_init=
                                                     debug=debug)
         clstrs1 = {i: clstrs[i] for i in clstrs.keys() if i not in redo_clstrs}
         corr_new, clstrs_new, silh_new = make_new_outputs(corr0, clstrs1, clstrs2)
-        new_clstrs_tstats = {i:np.mean(silh_new[i]) / max(np.std(silh_new[i]),  _eps) for i in clstrs_new.keys()}
+        # new_clstrs_tstats = {i:np.mean(silh_new[i]) / max(np.std(silh_new[i]),  _eps) for i in clstrs_new.keys()}
+        new_clstrs_tstats = {i:np.mean(silh_new[i]) for i in clstrs_new.keys()}
         tstats_mean = np.mean(list(clstrs_tstats.values()))
         new_tstats_mean = np.mean(list(new_clstrs_tstats.values()))
         if new_tstats_mean <= tstats_mean:

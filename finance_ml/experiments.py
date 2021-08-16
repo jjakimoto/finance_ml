@@ -86,7 +86,8 @@ def get_random_block_corr(n_cols, n_blocks, random_state=None, min_block_size=2,
         corr0 = pd.DataFrame(corr0[cols].loc[cols].values, index=orig_cols, columns=orig_cols)
     return corr0
 
-def get_classification_data(n_features=100, n_informative=25, n_reduntant=25, n_samples=10000, random_state=0, sigma=.0):
+def get_classification_data(n_features=100, n_informative=25, n_reduntant=25, n_samples=10000,
+                            info_sigma=0., red_sigma=0., random_state=0):
     np.random.seed(random_state)
     X, y = make_classification(n_samples=n_samples, n_features=n_features - n_reduntant,
                                n_informative=n_informative, n_redundant=0, shuffle=False)
@@ -94,7 +95,10 @@ def get_classification_data(n_features=100, n_informative=25, n_reduntant=25, n_
     cols += [f"N_{i}" for i in range(n_features - n_reduntant - n_informative)]
     X = pd.DataFrame(X, columns=cols)
     y = pd.Series(y)
+    for i in range(n_informative):
+        col = f"I_{i}"
+        X[col] = X[col] + np.random.normal(size=X.shape[0]) * info_sigma
     rdt_choices = np.random.choice(range(n_informative), size=n_reduntant)
     for i, choice in enumerate(rdt_choices):
-        X[f"R_{i}"] = X[f"I_{choice}"] + np.random.normal(size=X.shape[0]) * sigma
+        X[f"R_{i}"] = X[f"I_{choice}"] + np.random.normal(size=X.shape[0]) * red_sigma
     return X, y
