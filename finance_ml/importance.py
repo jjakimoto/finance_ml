@@ -160,6 +160,37 @@ def feat_imp_MDA(clf, X, y, sample_weight=None, scoring='neg_log_loss', n_splits
     imp = imprv / max_imprv
     return pd.concat({"mean": imp.mean(), "std": imp.std() * (imp.shape[0] ** -0.5)}, axis=1)
 
+
+def feat_imp_TreeShap(model, X):
+    """Compute Mean Decrease Impurity
+    
+    Args:
+        model (Tree/Forest Classifier instance)
+        X: pd.DataFrame, Input feature
+
+    Returns:
+        pd.DataFrame: Importance means and standard deviations
+            - mean: Mean of importance
+            - std: Standard deviation of importance
+    """
+    import shap
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X)
+    if isinstance(shap_values, list):
+        imp = None
+        for shap_value in shap_values:
+            if imp is None:
+                imp = np.abs(shap_value)
+            else:
+                imp += np.abs(shap_value)
+    else:
+        imp = np.abs(shap_values)
+    df = pd.DataFrame(imp, columns=X.columns)
+    imp = pd.concat({"mean": df.mean(axis=0), "std": df.std(axis=0) * (df.shape[0] ** -0.5)}, axis=1)
+    imp /= imp["mean"].sum()
+    return imp
+
+
 def group_mean_std(df0, clstrs):
     out = pd.DataFrame(columns=['mean', 'std'])
     for key, elements in clstrs.items():

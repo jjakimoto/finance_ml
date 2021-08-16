@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from .importance import feat_imp_MDI, feat_imp_MDA
+from .importance import feat_imp_MDI, feat_imp_MDA, feat_imp_TreeShap
 from .importance import feat_imp_MDA_clustered, feat_imp_MDI_clustered
 from .model_selection import cv_score
 from .clustering import cluster_kmeans_top
@@ -16,6 +16,9 @@ def _select_features(model, features, labels, q, mode, **kwargs):
         imp = feat_imp_MDI(model, features.columns)["mean"]
     elif mode.lower() == "mda":
         imp = feat_imp_MDA(model, features, labels, **kwargs)["mean"]
+    elif mode.lower() == "tree_shap":
+        model.fit(features, labels)
+        imp = feat_imp_TreeShap(model, features)["mean"]
     else:
         raise ValueError(f"Unknown mode: {mode}")    
     score_th = imp.quantile(q)
