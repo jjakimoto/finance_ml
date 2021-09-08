@@ -67,7 +67,7 @@ def expand_call(kwargs):
         try:
             return func(**input_kwargs)
         except Exception as e:
-            print(e)
+            print(f"Error: {e}")
             print(f"paramteres: {input_kwargs}")
             return e
     out = wrapped_func(**kwargs)

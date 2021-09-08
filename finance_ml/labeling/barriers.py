@@ -31,7 +31,8 @@ def get_touch_idx(close, events, sltp, molecule=None):
     """
     # Sample a subset with specific indices
     if molecule is not None:
-        _events = events.loc[molecule]
+        index = events.index.intersection(molecule)
+        _events = events.loc[index]
     else:
         _events = events
     touch_idx = pd.DataFrame(index=_events.index)
@@ -49,11 +50,15 @@ def get_touch_idx(close, events, sltp, molecule=None):
     # Replace undefined value with the last time index
     vertical_lines = _events["t1"].fillna(close.index[-1])
     for loc, t1 in vertical_lines.iteritems():
-        df = close[loc:t1]
-        # Change the direction depending on the side
-        df = (df / close[loc] - 1) * _events.at[loc, 'side']
-        touch_idx.at[loc, 'sl'] = df[df < sls[loc]].index.min()
-        touch_idx.at[loc, 'tp'] = df[df > tps[loc]].index.min()
+        # Error Handle incase unmatching index
+        try:
+            df = close[loc:t1]
+            # Change the direction depending on the side
+            df = (df / close[loc] - 1) * _events.at[loc, 'side']
+            touch_idx.at[loc, 'sl'] = df[df < sls[loc]].index.min()
+            touch_idx.at[loc, 'tp'] = df[df > tps[loc]].index.min()
+        except Exception as e:
+            print(f"Error: {e} at {loc}-{t1}")
     touch_idx['t1'] = _events['t1'].copy(deep=True)
     return touch_idx
 

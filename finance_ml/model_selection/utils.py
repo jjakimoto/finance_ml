@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import log_loss, accuracy_score, f1_score, recall_score, precision_score,\
     precision_recall_curve, roc_auc_score
+from sklearn.metrics import r2_score
 
 from finance_ml.multiprocessing import mp_pandas_obj
 
@@ -191,6 +192,9 @@ def evaluate(model,
     elif method == 'meta_performance':
         prob = model.predict_proba(X)
         score = meta_performance(ret, prob)
+    elif method == "r2":
+        pred = model.predict(X)
+        score = r2_score(y, pred, sample_weight=sample_weight)
     else:
         raise Exception(f'No Implementation method={method}')
     return score
