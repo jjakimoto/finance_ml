@@ -104,6 +104,7 @@ def cv_output(clf,
               pct_embargo=0.,
               purging=True,
               num_threads=1,
+              use_prob=False,
               **kwargs):
     """Cross Validation with default purging and embargo
     
@@ -159,6 +160,12 @@ def cv_output(clf,
         if sample_weight is not None:
             train_params['sample_weight'] = sample_weight.iloc[train].values
         clf_fit = clf.fit(X=X.iloc[train, :].values, y=y.iloc[train].values, **train_params)
-        outputs += list(clf_fit.predict(X.iloc[test, :]))
+        if use_prob:
+            outputs += list(clf_fit.predict_proba(X.iloc[test, :]))
+        else:
+            outputs += list(clf_fit.predict(X.iloc[test, :]))
         indices += list(X.index[test])
-    return pd.Series(outputs, index=indices)
+    if use_prob:
+        return pd.DataFrame(outputs, index=indices)
+    else:
+        return pd.Series(outputs, index=indices)
