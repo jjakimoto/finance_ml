@@ -15,7 +15,7 @@ Simply add `your/path/to/finace_ml` to your PYTHONPATH.
 # Implementation
 The following functions are implemented:
 * Labeling
-* Multiporcessing
+* Multiprocessing
 * Sampling
 * Feature Selection
 * Asset Allcation
